@@ -8,6 +8,7 @@ local parsing = require 'purl.utils.parsing'
 ---@field query? table<string, string>
 ---@field hash? string
 local HttpUrl = {}
+HttpUrl.__index = HttpUrl
 
 local utils = {}
 
@@ -23,13 +24,15 @@ function HttpUrl.parse(input)
 	end
 
 	-- Parse the '://'
-	if not parsing.parse_pattern(input, '%:%/%/') then
+	local proto_sep
+	proto_sep, input = parsing.parse_pattern(input, '%:%/%/')
+	if not proto_sep then
 		return nil
 	end
 
 	---@type string[]?
 	local host_components
-	host_components, input = parsing.parse_delimited(input, '%w', '%.')
+	host_components, input = parsing.parse_delimited_pattern(input, '%w+', '%.')
 	if not host_components then
 		return nil
 	end
@@ -40,20 +43,14 @@ function HttpUrl.parse(input)
 	port_str, input = parsing.parse_pattern(input, '%:%d+')
 	if port_str then
 		port = tonumber(port_str:sub(2))
-	end
-
-	---@type string?
-	local path, path_root
-	path_root, input = parsing.parse_pattern(input, '%/')
-	if path_root then
-		local path_components
-		path_components, input = parsing.parse_delimited(input, '[^%/%?]+', '%/')
-		if path_components then
-			path = '/' .. table.concat(path_components, '/')
-		else
+		if not port then
 			return nil
 		end
 	end
+
+	---@type string?
+	local path
+	path, input = parsing.parse_pattern(input, '[^%?%#]+')
 
 	local query
 	query, input = utils.parse_query(input)
@@ -73,6 +70,32 @@ function HttpUrl.parse(input)
 	return http_url
 end
 
+---@return string[]
+function HttpUrl:format_for_buffer()
+	---@type string[]
+	local to_return = {}
+
+	table.insert(to_return, ('protocol: %s'):format(self.protocol))
+	table.insert(to_return, ('host: %s'):format(self.host))
+	if self.port then
+		table.insert(to_return, ('port: %s'):format(self.port))
+	end
+	if self.path then
+		table.insert(to_return, ('path: %s'):format(self.path))
+	end
+	if self.query then
+		table.insert(to_return, 'query:')
+		for key, value in pairs(self.query) do
+			table.insert(to_return, ('  %s: %s'):format(key, value))
+		end
+	end
+	if self.hash then
+		table.insert(to_return, ('hash: %s'):format(self.hash))
+	end
+
+	return to_return
+end
+
 ---@private
 ---@return HttpUrl
 function HttpUrl._new()
@@ -82,7 +105,6 @@ function HttpUrl._new()
 
 	return http_url
 end
-
 
 ---@param input string
 ---@return table<string, string>?, string
@@ -99,6 +121,19 @@ function utils.parse_query(input)
 		return nil, original_input
 	end
 
+	local kv_pairs
+	kv_pairs, input = parsing.parse_delimited(input, utils.parse_query_kv_pair, function(i)
+		return parsing.parse_pattern(i, '%&')
+	end)
+
+	if not kv_pairs then
+		return nil, original_input
+	end
+
+	for _, kv in ipairs(kv_pairs) do
+		to_return[kv.key] = kv.value
+	end
+
 	return to_return, input
 end
 
@@ -108,13 +143,19 @@ function utils.parse_query_kv_pair(input)
 	local original_input = input
 
 	local key
-	key, input = parsing.parse_pattern(input, '[%w]+')
+	key, input = parsing.parse_pattern(input, '[%w%_]+')
 	if not key then
 		return nil, original_input
 	end
 
+	local eq
+	eq, input = parsing.parse_pattern(input, '%=')
+	if not eq then
+		return nil, original_input
+	end
+
 	local value
-	value, input = parsing.parse_pattern(input, '[%w]+')
+	value, input = parsing.parse_pattern(input, '[%w%+%_]+')
 	if not key then
 		return nil, original_input
 	end
