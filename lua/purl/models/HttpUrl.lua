@@ -64,7 +64,7 @@ function HttpUrl.parse(input)
 
 	---@type string?
 	local hash
-	hash, input = parsing.parse_pattern(input, '%#[^%#]+$')
+	hash, input = parsing.parse_pattern(input, '%#[%w%%]+$')
 
 	local http_url = HttpUrl._new()
 	http_url.protocol = protocol
