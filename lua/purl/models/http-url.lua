@@ -16,14 +16,14 @@ local utils = {}
 ---@param input string
 ---@return HttpUrl?
 function HttpUrl.parse(input)
-
+	---@type string?
 	local protocol
 	protocol, input = parsing.parse_pattern_choices(input, 'https', 'http')
 	if not protocol then
 		return nil
 	end
 
-	-- Parse the '://'
+	---@type string?
 	local proto_sep
 	proto_sep, input = parsing.parse_pattern(input, '%:%/%/')
 	if not proto_sep then
@@ -52,8 +52,15 @@ function HttpUrl.parse(input)
 	local path
 	path, input = parsing.parse_pattern(input, '[^%?%#]+')
 
-	local query
-	query, input = utils.parse_query(input)
+	---@type string?, table<string, string>?
+	local query_prefix, query
+	query_prefix, input = parsing.parse_pattern(input, '%?')
+	if query_prefix then
+		query, input = utils.parse_query(input)
+		if not query then
+			return nil
+		end
+	end
 
 	---@type string?
 	local hash
@@ -113,13 +120,6 @@ function utils.parse_query(input)
 
 	---@type table<string, string>
 	local to_return = {}
-
-	-- Ensure question mark prefix is present
-	local q
-	q, input = parsing.parse_pattern(input, '%?')
-	if not q then
-		return nil, original_input
-	end
 
 	local kv_pairs
 	kv_pairs, input = parsing.parse_delimited(input, utils.parse_query_kv_pair, function(i)
