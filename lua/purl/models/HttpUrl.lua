@@ -77,32 +77,6 @@ function HttpUrl.parse(input)
 	return http_url
 end
 
----@return string[]
-function HttpUrl:format_for_buffer()
-	---@type string[]
-	local to_return = {}
-
-	table.insert(to_return, ('protocol: %s'):format(self.protocol))
-	table.insert(to_return, ('host: %s'):format(self.host))
-	if self.port then
-		table.insert(to_return, ('port: %s'):format(self.port))
-	end
-	if self.path then
-		table.insert(to_return, ('path: %s'):format(self.path))
-	end
-	if self.query then
-		table.insert(to_return, 'query:')
-		for key, value in pairs(self.query) do
-			table.insert(to_return, ('  %s: %s'):format(key, value))
-		end
-	end
-	if self.hash then
-		table.insert(to_return, ('hash: %s'):format(self.hash))
-	end
-
-	return to_return
-end
-
 ---@private
 ---@return HttpUrl
 function HttpUrl._new()

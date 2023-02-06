@@ -30,7 +30,28 @@ end
 ---@param url HttpUrl The URL to now display
 function UrlView:set_url(url)
 	self.url = url
-	local lines = url:format_for_buffer()
+
+	---@type string[]
+	local lines = {}
+
+	table.insert(lines, ('protocol: %s'):format(url.protocol))
+	table.insert(lines, ('host: %s'):format(url.host))
+	if url.port then
+		table.insert(lines, ('port: %s'):format(url.port))
+	end
+	if url.path then
+		table.insert(lines, ('path: %s'):format(url.path))
+	end
+	if url.query then
+		table.insert(lines, 'query:')
+		for key, value in pairs(url.query) do
+			table.insert(lines, ('  %s: %s'):format(key, value))
+		end
+	end
+	if url.hash then
+		table.insert(lines, ('hash: %s'):format(url.hash))
+	end
+
 	vim.api.nvim_buf_set_lines(self.buffer, 0, -1, true, lines)
 end
 
