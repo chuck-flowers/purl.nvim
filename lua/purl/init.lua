@@ -1,4 +1,4 @@
-local HttpUrl = require 'purl.models.http-url'
+local HttpUrl = require 'purl.models.HttpUrl'
 local UrlView = require 'purl.views.UrlView'
 
 -- 'https://www.reddit.com/r/ender3v2/comments/ub6mip/help_with_cr_touch_with_sprite_extruder_pro_kit/?utm_source=share&utm_medium=web2x&context=3'
