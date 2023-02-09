@@ -1,5 +1,13 @@
 local parsing = require 'purl.utils.parsing'
 
+local ESCAPE_CODE_LOOKUP = {
+	['26'] = '&',
+	['2F'] = '/',
+	['3A'] = ':',
+	['3D'] = '=',
+	['3F'] = '?'
+}
+
 ---@class HttpUrl
 ---@field protocol string
 ---@field host string
@@ -97,8 +105,8 @@ function utils.parse_query(input)
 
 	local kv_pairs
 	kv_pairs, input = parsing.parse_delimited(input, utils.parse_query_kv_pair, function(i)
-		return parsing.parse_pattern(i, '%&')
-	end)
+			return parsing.parse_pattern(i, '%&')
+		end)
 
 	if not kv_pairs then
 		return nil, original_input
@@ -116,22 +124,30 @@ end
 function utils.parse_query_kv_pair(input)
 	local original_input = input
 
+	-- Parse key
 	local key
-	key, input = parsing.parse_pattern(input, '[%w%_]+')
+	key, input = parsing.parse_pattern(input, '[%w%_%.]+')
 	if not key then
 		return nil, original_input
 	end
 
+	-- Parse equal sign
 	local eq
 	eq, input = parsing.parse_pattern(input, '%=')
 	if not eq then
 		return nil, original_input
 	end
 
+	-- Parse value
 	local value
-	value, input = parsing.parse_pattern(input, '[%w%+%_]+')
-	if not key then
+	value, input = parsing.parse_pattern(input, '[%w%+%_%%%.]+')
+	if not value then
 		return nil, original_input
+	end
+
+	-- Cleanup the value
+	for escape_code, escape_value in pairs(ESCAPE_CODE_LOOKUP) do
+		value = value:gsub('%%' .. escape_code, escape_value)
 	end
 
 	return { key = key, value = value }, input

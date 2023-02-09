@@ -78,13 +78,12 @@ function UrlView:_create_window()
 	local float_y = (root_height - float_height) / 2
 
 	self.window = vim.api.nvim_open_win(self.buffer, true, {
-		relative = 'win',
-		row = float_y,
-		col = float_x,
-		width = float_width,
-		height = float_height
-	})
+			relative = 'win',
+			row = float_y,
+			col = float_x,
+			width = float_width,
+			height = float_height
+		})
 end
 
 return UrlView
-
