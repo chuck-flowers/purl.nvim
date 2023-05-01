@@ -1,11 +1,12 @@
 local parsing = require 'purl.utils.parsing'
 
 local ESCAPE_CODE_LOOKUP = {
+	['20'] = ' ',
 	['26'] = '&',
 	['2F'] = '/',
 	['3A'] = ':',
 	['3D'] = '=',
-	['3F'] = '?'
+	['3F'] = '?',
 }
 
 ---@class HttpUrl
