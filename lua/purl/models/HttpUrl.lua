@@ -140,7 +140,7 @@ function utils.parse_query_kv_pair(input)
 
 	-- Parse value
 	local value
-	value, input = parsing.parse_pattern(input, '[%w%+%_%%%.]+')
+	value, input = parsing.parse_pattern(input, '[%w%+%_%%%.%-]+')
 	if not value then
 		return nil, original_input
 	end
