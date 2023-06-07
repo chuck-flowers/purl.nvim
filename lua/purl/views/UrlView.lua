@@ -3,8 +3,8 @@
 ---@field window integer
 ---@field url? HttpUrl
 local UrlView = {
-	HORIZONTAL_MARGIN = 2,
-	VERTICAL_MARGIN = 2
+	HORIZONTAL_MARGIN = 10,
+	VERTICAL_MARGIN = 10
 }
 UrlView.__index = UrlView
 
@@ -82,7 +82,9 @@ function UrlView:_create_window()
 			row = float_y,
 			col = float_x,
 			width = float_width,
-			height = float_height
+			height = float_height,
+			title = 'URL',
+			border = 'rounded'
 		})
 end
 
